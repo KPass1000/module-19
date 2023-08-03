@@ -73,9 +73,9 @@ w3 = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
 ################################################################################
 # Step 1 - Part 3:
 # Import the following functions from the `crypto_wallet.py` file:
-# * `generate_account`
-# * `get_balance`
-# * `send_transaction`
+import streamlit as st
+from crypto_wallet import generate_account, get_balance, send_transaction
+from web3 import Web3
 
 # @TODO:
 # From `crypto_wallet.py import the functions generate_account, get_balance,
@@ -156,7 +156,7 @@ st.sidebar.markdown("## Client Account Address and Ethernet Balance in Ether")
 
 # @TODO:
 #  Call the `generate_account` function and save it as the variable `account`
-# YOUR CODE HERE
+account = generate_account(w3)
 
 ##########################################
 
@@ -172,7 +172,9 @@ st.sidebar.write(account.address)
 # @TODO
 # Call `get_balance` function and pass it your account address
 # Write the returned ether balance to the sidebar
-# YOUR CODE HERE
+def display_balance():
+    balance = get_balance(account.address)
+    st.sidebar.write(f"Account Balance: {balance} ETH")
 
 ##########################################
 
@@ -263,11 +265,41 @@ st.sidebar.markdown("## Total Wage in Ether")
 # Calculate total `wage` for the candidate by multiplying the candidate’s hourly
 # rate from the candidate database (`candidate_database[person][3]`) by the
 # value of the `hours` variable
-# YOUR CODE HERE
+# Calculate the wage in ether based on the professional’s hourly rate and the number of hours worked
+def calculate_wage(hourly_rate, hours):
+    return hourly_rate * hours
 
+# Step 2 (Continued):
+# Write the code to allow a customer (you) to send an Ethereum blockchain transaction that pays the hired candidate
+def pay_candidate(account, candidate_address, wage):
+    try:
+        # Send the transaction
+        transaction_hash = send_transaction(w3, account, candidate_address, wage)
+
+        # Display the transaction hash in the Streamlit web interface
+        st.sidebar.write(f"Transaction Hash: {transaction_hash.hex()}")
+
+        # Display success message
+        st.sidebar.success("Payment Transaction Successful!")
+
+    except Exception as e:
+        # Display error message if the transaction fails
+        st.sidebar.error(f"Transaction Failed: {str(e)}")
+                  
 # @TODO
 # Write the `wage` calculation to the Streamlit sidebar
-# YOUR CODE HERE
+# Calculate and display the wage in ether in the Streamlit sidebar
+person = st.sidebar.selectbox("Select a Person", people)
+hours = st.sidebar.number_input("Number of Hours")
+hourly_rate = candidate_database[person][3]
+wage = calculate_wage(hourly_rate, hours)
+st.sidebar.write(f"Candidate's Wage: {wage} ETH")
+
+# Step 2 (Continued):
+# Allow the customer (you) to send an Ethereum blockchain transaction that pays the hired candidate
+if st.sidebar.button("Send Transaction"):
+    pay_candidate(account, candidate_database[person][1], w3.toWei(wage, "ether"))
+
 
 ##########################################
 # Step 2 - Part 2:
