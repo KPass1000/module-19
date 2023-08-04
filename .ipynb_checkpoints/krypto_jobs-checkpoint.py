@@ -29,6 +29,7 @@ import streamlit as st
 from dataclasses import dataclass
 from typing import Any, List
 from web3 import Web3
+import os
 
 w3 = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
 ################################################################################
@@ -71,6 +72,7 @@ w3 = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
 
 
 ################################################################################
+print("Current Working Directory:", os.getcwd())
 # Step 1 - Part 3:
 # Import the following functions from the `crypto_wallet.py` file:
 import streamlit as st
@@ -93,28 +95,28 @@ candidate_database = {
         "0xaC8eB8B2ed5C4a0fC41a84Ee4950F417f67029F0",
         "4.3",
         0.20,
-        "Images/lane.jpeg",
+        "lane.jpeg",
     ],
     "Ash": [
         "Ash",
         "0x2422858F9C4480c2724A309D58Ffd7Ac8bF65396",
         "5.0",
         0.33,
-        "Images/ash.jpeg",
+        "ash.jpeg",
     ],
     "Jo": [
         "Jo",
         "0x8fD00f170FDf3772C5ebdCD90bF257316c69BA45",
         "4.7",
         0.19,
-        "Images/jo.jpeg",
+        "jo.jpeg",
     ],
     "Kendall": [
         "Kendall",
         "0x8fD00f170FDf3772C5ebdCD90bF257316c69BA45",
         "4.1",
         0.16,
-        "Images/kendall.jpeg",
+        "kendall.jpeg",
     ],
 }
 
@@ -126,8 +128,15 @@ def get_people():
     """Display the database of KryptoJobs2Go candidate information."""
     db_list = list(candidate_database.values())
 
+    # Get the absolute path of the current directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
     for number in range(len(people)):
-        st.image(db_list[number][4], width=200)
+        # Construct the absolute path to the image file
+        image_path = os.path.join(current_dir, db_list[number][4])
+
+        # Display the image
+        st.image(image_path, width=200)
         st.write("Name: ", db_list[number][0])
         st.write("Ethereum Account Address: ", db_list[number][1])
         st.write("KryptoJobs2Go Rating: ", db_list[number][2])
@@ -179,10 +188,10 @@ def display_balance():
 ##########################################
 
 # Create a select box to chose a FinTech Hire candidate
-person = st.sidebar.selectbox("Select a Person", people)
+person = st.sidebar.selectbox("Select a Person", people, key="person_selection1")
 
 # Create a input field to record the number of hours the candidate worked
-hours = st.sidebar.number_input("Number of Hours")
+hours = st.sidebar.number_input("Number of Hours", key="hours_input1")
 
 st.sidebar.markdown("## Candidate Name, Hourly Rate, and Ethereum Address")
 
@@ -274,6 +283,7 @@ def calculate_wage(hourly_rate, hours):
 def pay_candidate(account, candidate_address, wage):
     try:
         # Send the transaction
+        
         transaction_hash = send_transaction(w3, account, candidate_address, wage)
 
         # Display the transaction hash in the Streamlit web interface
@@ -289,16 +299,16 @@ def pay_candidate(account, candidate_address, wage):
 # @TODO
 # Write the `wage` calculation to the Streamlit sidebar
 # Calculate and display the wage in ether in the Streamlit sidebar
-person = st.sidebar.selectbox("Select a Person", people)
-hours = st.sidebar.number_input("Number of Hours")
+person = st.sidebar.selectbox("Select a Person", people, key="person_selection2")
+hours = st.sidebar.number_input("Number of Hours", key="hours_input2")
 hourly_rate = candidate_database[person][3]
 wage = calculate_wage(hourly_rate, hours)
 st.sidebar.write(f"Candidate's Wage: {wage} ETH")
 
 # Step 2 (Continued):
 # Allow the customer (you) to send an Ethereum blockchain transaction that pays the hired candidate
-if st.sidebar.button("Send Transaction"):
-    pay_candidate(account, candidate_database[person][1], w3.toWei(wage, "ether"))
+if st.sidebar.button("Send Transaction", key="send_button1"):
+    pay_candidate(account, candidate_database[person][1], w3.to_wei(wage, "ether"))
 
 
 ##########################################
@@ -320,7 +330,7 @@ if st.sidebar.button("Send Transaction"):
 # web interface.
 
 
-if st.sidebar.button("Send Transaction"):
+if st.sidebar.button("Send Transaction", key="send_button2"):
 
     # @TODO
     # Call the `send_transaction` function and pass it 3 parameters:
